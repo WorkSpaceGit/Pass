@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>⬡</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.2.0/crypto-js.min.js"></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400&display=swap');
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #0a0a0a;
+    --surface: #111111;
+    --border: #1e1e1e;
+    --border-active: #333333;
+    --text: #c8c8c8;
+    --text-dim: #444444;
+    --accent: #e8e8e8;
+    --error: #6b2020;
+    --error-text: #c04040;
+    --success: #1a3a1a;
+    --success-text: #40a040;
+    --warn: #3a2a0a;
+    --warn-text: #c08030;
+  }
+
+  html, body {
+    height: 100%;
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 300;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+  }
+
+  /* subtle grid background */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(var(--border) 1px, transparent 1px),
+      linear-gradient(90deg, var(--border) 1px, transparent 1px);
+    background-size: 48px 48px;
+    opacity: 0.4;
+    pointer-events: none;
+  }
+
+  .container {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0;
+    animation: fadeIn 1.2s ease both;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(12px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ── ASCII display ── */
+  .ascii-display {
+    font-size: 1rem;
+    letter-spacing: 0.05em;
+    color: var(--text-dim);
+    white-space: pre;
+    line-height: 1.6;
+    transition: color 0.3s ease;
+    min-width: 200px;
+    text-align: left;
+    user-select: none;
+  }
+
+  .ascii-display.active { color: var(--text); }
+  .ascii-display.error-state { color: var(--error-text); }
+  .ascii-display.success-state { color: var(--success-text); }
+
+  .ascii-line-1 { display: block; margin-bottom: 2px; }
+  .ascii-line-2 { display: block; }
+
+  /* hidden real input */
+  .real-input {
+    position: absolute;
+    opacity: 0;
+    width: 1px;
+    height: 1px;
+    pointer-events: none;
+  }
+
+  /* clickable area */
+  .input-area {
+    cursor: text;
+    padding: 24px 0 8px;
+    outline: none;
+  }
+
+  /* submit button */
+  .submit-btn {
+    margin-top: 32px;
+    background: none;
+    border: 1px solid var(--border-active);
+    color: var(--text-dim);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.75rem;
+    letter-spacing: 0.2em;
+    padding: 8px 24px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    opacity: 0;
+    transform: translateY(4px);
+  }
+
+  .submit-btn.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  .submit-btn:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+
+  /* message */
+  .message {
+    margin-top: 20px;
+    font-size: 0.65rem;
+    letter-spacing: 0.15em;
+    height: 16px;
+    transition: all 0.3s ease;
+    opacity: 0;
+  }
+  .message.show { opacity: 1; }
+  .message.err { color: var(--error-text); }
+  .message.ok  { color: var(--success-text); }
+  .message.warn { color: var(--warn-text); }
+
+  /* content screen */
+  .content {
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    gap: 32px;
+    animation: fadeIn 0.8s ease both;
+  }
+
+  .content.show { display: flex; }
+
+  .enter-btn {
+    background: none;
+    border: 1px solid var(--border-active);
+    color: var(--text);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.8rem;
+    letter-spacing: 0.25em;
+    padding: 14px 40px;
+    cursor: pointer;
+    text-decoration: none;
+    display: inline-block;
+    transition: all 0.25s ease;
+    position: relative;
+  }
+
+  .enter-btn::before {
+    content: '';
+    position: absolute;
+    inset: -4px;
+    border: 1px solid var(--border);
+    transition: all 0.25s ease;
+  }
+
+  .enter-btn:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+    letter-spacing: 0.35em;
+  }
+
+  .enter-btn:hover::before {
+    border-color: var(--border-active);
+    inset: -7px;
+  }
+
+  /* warn banner */
+  .warn-banner {
+    font-size: 0.6rem;
+    letter-spacing: 0.12em;
+    color: var(--warn-text);
+    border: 1px solid var(--warn);
+    padding: 8px 20px;
+    display: none;
+  }
+  .warn-banner.show { display: block; }
+
+  /* blink cursor */
+  @keyframes blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0; }
+  }
+  .cursor { animation: blink 1s step-end infinite; }
+
+  /* shake */
+  @keyframes shake {
+    0%,100% { transform: translateX(0); }
+    20% { transform: translateX(-6px); }
+    40% { transform: translateX(6px); }
+    60% { transform: translateX(-4px); }
+    80% { transform: translateX(4px); }
+  }
+  .shake { animation: shake 0.4s ease; }
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════
+     НАЛАШТУВАННЯ — змінюй тільки тут
+     ═══════════════════════════════════════════ -->
+<script>
+  // 1. Зашифруй своє посилання на: https://encode-decode.com/cryptojs-aes-encrypt-decrypt-online/
+  //    або запусти у консолі браузера:
+  //    CryptoJS.AES.encrypt("ТВОЄ_ПОСИЛАННЯ", "ТВІЙ_ПАРОЛЬ").toString()
+  //    і встав результат сюди:
+  const ENCRYPTED_URL = "U2FsdGVkX18C+h63Cv46U6UphVt3C0Gs47GAtpHC5dPCY1eqaaagnI+w0JK3HArUNLOeUVMWBK36xZ+S+DhLUUAS9y/hz7rEMig5VBUKJkolIaxDmEAC0GpAusRqrtsI";
+
+  // 2. Хеш пароля SHA-256.
+  //    Запусти у консолі: CryptoJS.SHA256("ТВІЙ_ПАРОЛЬ").toString()
+  //    і встав результат сюди:
+  const PASSWORD_HASH = "d1ded0294a229cbf7d817f24b770ac349cf368af5228e16e77cfa58efa0bbef5";
+
+  // 3. Кількість днів між нагадуваннями про зміну пароля
+  const REMIND_DAYS = 45;
+
+  // 4. Текст кнопки після входу
+  const BUTTON_TEXT = "→";
+</script>
+<!-- ═══════════════════════════════════════════ -->
+
+<!-- LOGIN SCREEN -->
+<div class="container" id="loginScreen">
+  <div class="input-area" id="inputArea" tabindex="0">
+    <div class="ascii-display" id="asciiDisplay">
+      <span class="ascii-line-1" id="line1">[ <span id="dotsSpan"></span><span class="cursor" id="cur">_</span> ]</span>
+      <span class="ascii-line-2" id="line2">━━</span>
+    </div>
+  </div>
+  <input class="real-input" type="password" id="realInput" autocomplete="off" spellcheck="false">
+  <button class="submit-btn" id="submitBtn">[ ↵ ]</button>
+  <div class="message" id="message"></div>
+</div>
+
+<!-- CONTENT SCREEN -->
+<div class="content" id="contentScreen">
+  <div class="warn-banner" id="warnBanner">⚠ змінити пароль</div>
+  <a href="#" id="enterLink" class="enter-btn">→</a>
+</div>
+
+<script>
+(function() {
+  const inputArea  = document.getElementById('inputArea');
+  const realInput  = document.getElementById('realInput');
+  const dotsSpan   = document.getElementById('dotsSpan');
+  const cur        = document.getElementById('cur');
+  const line1      = document.getElementById('line1');
+  const line2      = document.getElementById('line2');
+  const asciiDisp  = document.getElementById('asciiDisplay');
+  const submitBtn  = document.getElementById('submitBtn');
+  const message    = document.getElementById('message');
+  const loginScr   = document.getElementById('loginScreen');
+  const contentScr = document.getElementById('contentScreen');
+  const enterLink  = document.getElementById('enterLink');
+  const warnBanner = document.getElementById('warnBanner');
+
+  let focused = false;
+
+  // ── focus handling ──
+  inputArea.addEventListener('click', () => { realInput.focus(); });
+  inputArea.addEventListener('keydown', (e) => { realInput.focus(); });
+
+  realInput.addEventListener('focus', () => {
+    focused = true;
+    cur.classList.add('cursor');
+    asciiDisp.classList.add('active');
+  });
+
+  realInput.addEventListener('blur', () => {
+    focused = false;
+    asciiDisp.classList.remove('active');
+  });
+
+  // ── update ASCII display on input ──
+  realInput.addEventListener('input', () => {
+    const len = realInput.value.length;
+    const dots = '■'.repeat(len);
+    dotsSpan.textContent = len > 0 ? dots + ' ' : '';
+
+    // line2 length: base 2 + grow with content
+    const lineLen = Math.max(2, len + 4);
+    line2.textContent = '━'.repeat(lineLen);
+
+    // show/hide submit
+    if (len > 0) {
+      submitBtn.classList.add('visible');
+    } else {
+      submitBtn.classList.remove('visible');
+    }
+
+    // clear message on type
+    hideMessage();
+    asciiDisp.classList.remove('error-state', 'success-state');
+  });
+
+  // ── enter key ──
+  realInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') tryUnlock();
+  });
+
+  submitBtn.addEventListener('click', tryUnlock);
+
+  // ── unlock logic ──
+  function tryUnlock() {
+    const val = realInput.value;
+    if (!val) return;
+
+    const hash = CryptoJS.SHA256(val).toString();
+
+    if (hash === PASSWORD_HASH) {
+      // decrypt URL
+      try {
+        const bytes = CryptoJS.AES.decrypt(ENCRYPTED_URL, val);
+        const url = bytes.toString(CryptoJS.enc.Utf8);
+
+        if (!url) throw new Error('empty');
+
+        asciiDisp.classList.add('success-state');
+        showMessage('ok', '· · ·');
+
+        setTimeout(() => {
+          loginScr.style.display = 'none';
+          enterLink.href = url;
+          enterLink.textContent = BUTTON_TEXT;
+
+          // check 45-day reminder
+          checkReminder();
+
+          contentScr.classList.add('show');
+        }, 600);
+
+      } catch(e) {
+        showError();
+      }
+    } else {
+      showError();
+    }
+  }
+
+  function showError() {
+    asciiDisp.classList.add('error-state', 'shake');
+    showMessage('err', '✕');
+    realInput.value = '';
+    dotsSpan.textContent = '';
+    line2.textContent = '━━';
+    submitBtn.classList.remove('visible');
+    setTimeout(() => asciiDisp.classList.remove('shake', 'error-state'), 500);
+  }
+
+  function showMessage(type, text) {
+    message.textContent = text;
+    message.className = 'message show ' + type;
+  }
+
+  function hideMessage() {
+    message.className = 'message';
+  }
+
+  // ── 45-day reminder ──
+  function checkReminder() {
+    const key = '_pw_last_remind';
+    const now = Date.now();
+    const last = parseInt(localStorage.getItem(key) || '0', 10);
+    const days = (now - last) / (1000 * 60 * 60 * 24);
+
+    if (days >= REMIND_DAYS) {
+      warnBanner.classList.add('show');
+      localStorage.setItem(key, now.toString());
+    }
+  }
+
+})();
+</script>
+</body>
+</html>
