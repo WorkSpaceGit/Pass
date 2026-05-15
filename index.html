@@ -29,17 +29,13 @@ c.mode.CTRGladman=function(){var t=c.lib.BlockCipherMode.extend();function e(t){
 
   :root {
     --bg: #0a0a0a;
-    --surface: #111111;
     --border: #1e1e1e;
     --border-active: #333333;
     --text: #c8c8c8;
     --text-dim: #444444;
     --accent: #e8e8e8;
-    --error: #6b2020;
     --error-text: #c04040;
-    --success: #1a3a1a;
     --success-text: #40a040;
-    --warn: #3a2a0a;
     --warn-text: #c08030;
   }
 
@@ -160,7 +156,6 @@ c.mode.CTRGladman=function(){var t=c.lib.BlockCipherMode.extend();function e(t){
   .message.show { opacity: 1; }
   .message.err  { color: var(--error-text); }
   .message.ok   { color: var(--success-text); }
-  .message.warn { color: var(--warn-text); }
 
   /* content screen */
   .content {
@@ -397,10 +392,10 @@ c.mode.CTRGladman=function(){var t=c.lib.BlockCipherMode.extend();function e(t){
         }, 600);
 
       } catch(e) {
-        showError(val);
+        showError();
       }
     } else {
-      showError(val);
+      showError();
     }
   }
 
