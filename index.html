@@ -222,16 +222,15 @@
      НАЛАШТУВАННЯ — змінюй тільки тут
      ═══════════════════════════════════════════ -->
 <script>
-  // 1. Зашифруй своє посилання на: https://encode-decode.com/cryptojs-aes-encrypt-decrypt-online/
-  //    або запусти у консолі браузера:
+  // 1. Зашифруй своє посилання у консолі браузера:
   //    CryptoJS.AES.encrypt("ТВОЄ_ПОСИЛАННЯ", "ТВІЙ_ПАРОЛЬ").toString()
-  //    і встав результат сюди:
-  const ENCRYPTED_URL = "U2FsdGVkX18C+h63Cv46U6UphVt3C0Gs47GAtpHC5dPCY1eqaaagnI+w0JK3HArUNLOeUVMWBK36xZ+S+DhLUUAS9y/hz7rEMig5VBUKJkolIaxDmEAC0GpAusRqrtsI";
+  //    і встав результат сюди = ЗАШИФРОВАНИЙ_РЯДОК ПОСИЛАННЯ:
+  const ENCRYPTED_URL = "U2FsdGVkX1+Tx9mV/0gXEsu05VvYDtV7DSBtHMB/5CCwoAsLvRXHZTMc+22XCv8s";
 
   // 2. Хеш пароля SHA-256.
   //    Запусти у консолі: CryptoJS.SHA256("ТВІЙ_ПАРОЛЬ").toString()
-  //    і встав результат сюди:
-  const PASSWORD_HASH = "d1ded0294a229cbf7d817f24b770ac349cf368af5228e16e77cfa58efa0bbef5";
+  //    і встав результат сюди = ХЕШ_ПАРОЛЯ:
+  const PASSWORD_HASH = "8a151dd2221af9103fae9477b7358cfaff5593c5fca0235913f6df46cfe68d8e";
 
   // 3. Кількість днів між нагадуваннями про зміну пароля
   const REMIND_DAYS = 45;
